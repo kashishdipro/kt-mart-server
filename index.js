@@ -17,6 +17,7 @@ async function run(){
     try{
         const brandCollection = client.db("ktMart").collection("brands");
         const productCollection = client.db("ktMart").collection("products");
+        const bookingCollection = client.db("ktMart").collection("bookings");
 
         app.get('/brands', async(req, res) =>{
             const query = {};
@@ -29,6 +30,13 @@ async function run(){
             const query = {brand: name};
             const brands = await productCollection.find(query).toArray();
             res.send(brands);
+        })
+
+        // Booking Post Api
+        app.post('/bookings', async(req, res) =>{
+            const booking = req.body;
+            const result = await bookingCollection.insertOne(booking);
+            res.send(result);
         })
     }finally{
 
