@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 
 const port = process.env.PORT || 5000;
@@ -35,8 +35,26 @@ async function run(){
         // Booking Post Api
         app.post('/bookings', async(req, res) =>{
             const booking = req.body;
+
+            const query = {
+                email: booking.email,
+                model: booking.model
+            }
+            const alreadyBooked = await bookingCollection.find(query).toArray();
+            if(alreadyBooked.length){
+                const message = `Already Booked`;
+                return res.send({acknowledged: false, message})
+            }
             const result = await bookingCollection.insertOne(booking);
             res.send(result);
+        })
+
+        // Booking Get Api
+        app.get('/bookings', async(req, res) =>{
+            const email = req.query.email;
+            const query = {email: email};
+            const bookings = await bookingCollection.find(query).toArray();
+            res.send(bookings);
         })
     }finally{
 
