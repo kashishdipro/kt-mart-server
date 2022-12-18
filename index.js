@@ -18,6 +18,7 @@ async function run(){
         const brandCollection = client.db("ktMart").collection("brands");
         const productCollection = client.db("ktMart").collection("products");
         const bookingCollection = client.db("ktMart").collection("bookings");
+        const userCollection = client.db("ktMart").collection("users");
 
         app.get('/brands', async(req, res) =>{
             const query = {};
@@ -56,6 +57,35 @@ async function run(){
             const bookings = await bookingCollection.find(query).toArray();
             res.send(bookings);
         })
+
+        // User Post Api
+        app.post('/users', async(req, res) =>{
+            const user = req.body;
+            const result = await userCollection.insertOne(user);
+            res.send(result);
+        })
+
+        // User Get Api
+        app.get('/users', async(req, res) =>{
+            const query = {};
+            const users = await userCollection.find(query).toArray();
+            res.send(users);
+        })
+
+        // User Put Api
+        app.put('/users/admin/:id', async(req, res) =>{
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const options = {upsert: true}; 
+            const updatedRole = {
+                $set: {
+                    role: 'admin'
+                }
+            }
+            const result = await userCollection.updateOne(query, updatedRole, options);
+            res.send(result);
+        })
+
     }finally{
 
     }
