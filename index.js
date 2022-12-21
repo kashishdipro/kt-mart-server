@@ -14,6 +14,21 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.kdtr5cm.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+function verifyJWT(req, res, next){
+    const authHeader = req.headers.authorization;
+    if(!authHeader){
+        return res.status(401).send({message: 'Unauthorized Access!'});
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN, function(err, decoded){
+        if(err){
+            return res.status(403).send({message: 'Forbidden Access!'});
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
+
 async function run(){
     try{
         const brandCollection = client.db("ktMart").collection("brands");
@@ -52,8 +67,14 @@ async function run(){
         })
 
         // Booking Get Api
-        app.get('/bookings', async(req, res) =>{
+        app.get('/bookings', verifyJWT, async(req, res) =>{
             const email = req.query.email;
+            const decodedEmail = req.decoded.email;
+
+            if(email !== decodedEmail){
+                return res.status(403).send({message: 'Forbidden Access!'});
+            }
+
             const query = {email: email};
             const bookings = await bookingCollection.find(query).toArray();
             res.send(bookings);
@@ -74,7 +95,14 @@ async function run(){
         })
 
         // User Put Api
-        app.put('/users/admin/:id', async(req, res) =>{
+        app.put('/users/admin/:id', verifyJWT, async(req, res) =>{
+            const decodedEmail = req.decoded.email;
+            const filter = {email: decodedEmail};
+            const user = await userCollection.findOne(filter);
+            if(user?.role !== 'admin'){
+                return res.status(403).send({message: 'Forbidden Access!'});
+            }
+            
             const id = req.params.id;
             const query = {_id: ObjectId(id)};
             const options = {upsert: true}; 
@@ -85,6 +113,14 @@ async function run(){
             }
             const result = await userCollection.updateOne(query, updatedRole, options);
             res.send(result);
+        })
+
+        // User Admin Get Api
+        app.get('/users/admin/:email', async(req, res) =>{
+            const email = req.params.email;
+            const query = {email};
+            const user = await userCollection.findOne(query);
+            res.send({isAdmin: user?.role === 'admin'});
         })
 
         app.get('/jwt', async(req, res) =>{
