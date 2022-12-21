@@ -123,6 +123,14 @@ async function run(){
             res.send({isAdmin: user?.role === 'admin'});
         })
 
+        // User Buyer Get Api
+        app.get('/users/buyer/:email', async(req, res) =>{
+            const email = req.params.email;
+            const query = {email};
+            const user = await userCollection.findOne(query);
+            res.send({isBuyer: user?.role !== 'seller' && user?.role !== 'admin'});
+        })
+
         app.get('/jwt', async(req, res) =>{
             const email = req.query.email;
             const query = {email: email};
