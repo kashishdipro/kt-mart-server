@@ -115,7 +115,7 @@ async function run(){
             res.send(result);
         })
 
-        // User Admin Get Api
+        // User Admin Get Api for protect Admin Route
         app.get('/users/admin/:email', async(req, res) =>{
             const email = req.params.email;
             const query = {email};
@@ -123,7 +123,7 @@ async function run(){
             res.send({isAdmin: user?.role === 'admin'});
         })
 
-        // User Buyer Get Api
+        // User Buyer Get Api for protect Buyer Route
         app.get('/users/buyer/:email', async(req, res) =>{
             const email = req.params.email;
             const query = {email};
@@ -131,6 +131,21 @@ async function run(){
             res.send({isBuyer: user?.role !== 'seller' && user?.role !== 'admin'});
         })
 
+        // Get Buyers from DB
+        app.get('/users/buyers', async(req, res) =>{
+            const query = {role: 'buyer'};
+            const buyer = await userCollection.find(query).toArray();
+            res.send(buyer);
+        })
+        
+        // Get Sellers from DB
+        app.get('/users/sellers', async(req, res) =>{
+            const query = {role: 'seller'};
+            const seller = await userCollection.find(query).toArray();
+            res.send(seller);
+        })
+
+        // JWT
         app.get('/jwt', async(req, res) =>{
             const email = req.query.email;
             const query = {email: email};
