@@ -131,14 +131,14 @@ async function run(){
             res.send({isBuyer: user?.role !== 'seller' && user?.role !== 'admin'});
         })
 
-        // Get Buyers from DB
+        // Get Buyers from DB Api
         app.get('/users/buyers', async(req, res) =>{
             const query = {role: 'buyer'};
             const buyer = await userCollection.find(query).toArray();
             res.send(buyer);
         })
         
-        // Get Sellers from DB
+        // Get Sellers from DB Api
         app.get('/users/sellers', async(req, res) =>{
             const query = {role: 'seller'};
             const seller = await userCollection.find(query).toArray();
@@ -155,6 +155,13 @@ async function run(){
                 return res.send({accessToken: token})
             }
             res.status(403).send({accessToken: ''})
+        })
+
+        // Post Product Api
+        app.post('/products', async(req, res) =>{
+            const product = req.body;
+            const result = await productCollection.insertOne(product);
+            res.send(result);
         })
 
     }finally{
