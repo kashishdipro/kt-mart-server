@@ -164,6 +164,18 @@ async function run(){
             res.send(result);
         })
 
+        // Get My Product using email
+        app.get('/products', async(req, res) =>{
+            let query = {};
+            if(req.query.seller_email){
+                query = {
+                    seller_email: req.query.seller_email
+                }
+            }
+            const myproducts = await productCollection.find(query).toArray();
+            res.send(myproducts);
+        })
+
     }finally{
 
     }
