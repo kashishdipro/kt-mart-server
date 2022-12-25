@@ -131,6 +131,14 @@ async function run(){
             res.send({isBuyer: user?.role !== 'seller' && user?.role !== 'admin'});
         })
 
+        // User Seller Get Api for protect Seller Route
+        app.get('/users/seller/:email', async(req, res) =>{
+            const email = req.params.email;
+            const query = {email};
+            const user = await userCollection.findOne(query);
+            res.send({isSeller: user?.role === 'seller'});
+        })
+
         // Get Buyers from DB Api
         app.get('/users/buyers', async(req, res) =>{
             const query = {role: 'buyer'};
