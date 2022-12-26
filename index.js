@@ -184,11 +184,25 @@ async function run(){
             res.send(myproducts);
         })
 
-        // Delete Product Api
+        // Delete Product Api for seller
         app.delete('/products/:id', async(req, res) =>{
             const id = req.params.id;
             const query = {_id: ObjectId(id)};
             const result = await productCollection.deleteOne(query);
+            res.send(result);
+        })
+
+        // Update Status Product Api for seller
+        app.patch('/products/:id', async(req, res) =>{
+            const id = req.params.id;
+            const status = req.body.status;
+            const query = {_id: ObjectId(id)};
+            const updatedStatus = {
+                $set: {
+                    status: status
+                }
+            }
+            const result = await productCollection.updateOne(query, updatedStatus);
             res.send(result);
         })
 
