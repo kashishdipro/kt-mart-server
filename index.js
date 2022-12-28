@@ -206,6 +206,13 @@ async function run(){
             res.send(result);
         })
 
+        // Get Advertisies Product Api
+        app.get('/advertisies', async(req, res) =>{
+            const query = {status: 'advertised'};
+            const result = await productCollection.find(query).toArray();
+            res.send(result);
+        })
+
     }finally{
 
     }
