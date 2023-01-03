@@ -5,6 +5,8 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
 const port = process.env.PORT || 5000;
 
 // Middle wares
@@ -95,14 +97,7 @@ async function run(){
         })
 
         // User Put Api
-        app.put('/users/admin/:id', verifyJWT, async(req, res) =>{
-            const decodedEmail = req.decoded.email;
-            const filter = {email: decodedEmail};
-            const user = await userCollection.findOne(filter);
-            if(user?.role !== 'admin'){
-                return res.status(403).send({message: 'Forbidden Access!'});
-            }
-            
+        app.put('/users/admin/:id', async(req, res) =>{
             const id = req.params.id;
             const query = {_id: ObjectId(id)};
             const options = {upsert: true}; 
@@ -213,7 +208,7 @@ async function run(){
             res.send(result);
         })
 
-        // Delete user Api for seller
+        // Delete User Api
         app.delete('/users/:id', async(req, res) =>{
             const id = req.params.id;
             const query = {_id: ObjectId(id)};
@@ -221,6 +216,44 @@ async function run(){
             res.send(result);
         })
 
+        // User Put Api
+        app.put('/users/sellers/:id', async(req, res) =>{
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const options = {upsert: true}; 
+            const updatedGenuineSeller = {
+                $set: {
+                    genuine_seller: true
+                }
+            }
+            const result = await userCollection.updateOne(query, updatedGenuineSeller, options);
+            res.send(result);
+        })
+
+        // Get Booking Id Api
+        app.get('/bookings/:id', async(req, res) =>{
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await bookingCollection.findOne(query);
+            res.send(result);
+        })
+
+        app.post('/create-payment-intent', async(req, res) =>{
+            const booking = req.body;
+            const price = booking.resale_price;
+            const amount = price * 100;
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'bdt',
+                "payment_method_types": [
+                    "card"
+                ]
+            })
+            res.send({
+                clientSecret: paymentIntent.client_secret 
+            })
+        })
 
     }finally{
 
