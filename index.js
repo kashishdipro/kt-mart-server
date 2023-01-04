@@ -37,6 +37,7 @@ async function run(){
         const productCollection = client.db("ktMart").collection("products");
         const bookingCollection = client.db("ktMart").collection("bookings");
         const userCollection = client.db("ktMart").collection("users");
+        const paymentCollection = client.db("ktMart").collection("payments");
 
         app.get('/brands', async(req, res) =>{
             const query = {};
@@ -253,6 +254,35 @@ async function run(){
             res.send({
                 clientSecret: paymentIntent.client_secret 
             })
+        })
+
+        // Payment Post Api
+        app.post('/payments', async(req, res) =>{
+            const payment = req.body;
+            const result = await paymentCollection.insertOne(payment);
+
+            // Update product field
+            const productId = payment.product_id;
+            const filter = {_id: ObjectId(productId)};
+            const updatedProduct = {
+                $set: {
+                    status: 'paid',
+                    transactionId: payment.transactionId
+                }
+            }
+            const updatedProductResult = await productCollection.updateOne(filter, updatedProduct);
+
+            // Update booking field
+            const id = payment.booking_id;
+            const query = {_id: ObjectId(id)};
+            const updatedBooking = {
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId
+                }
+            }
+            const updatedBookingResult = await bookingCollection.updateOne(query, updatedBooking)
+            res.send(result);
         })
 
     }finally{
