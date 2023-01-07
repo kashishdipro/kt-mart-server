@@ -83,9 +83,24 @@ async function run(){
             res.send(bookings);
         })
 
+        app.get('/product/:id', async(req, res) =>{
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const product = await productCollection.findOne(query);
+            res.send(product);
+        })
+
         // User Post Api
         app.post('/users', async(req, res) =>{
             const user = req.body;
+            const query = {
+                email: user.email
+            }
+            const alreadyUser = await userCollection.find(query).toArray();
+            if(alreadyUser.length){
+                const message = `You are already user`;
+                return res.send({acknowledged: false, message})
+            }
             const result = await userCollection.insertOne(user);
             res.send(result);
         })
@@ -132,7 +147,7 @@ async function run(){
             const email = req.params.email;
             const query = {email};
             const user = await userCollection.findOne(query);
-            res.send({isSeller: user?.role === 'seller'});
+            res.send({isSeller: user?.role === 'seller', user});
         })
 
         // Get Buyers from DB Api
@@ -141,9 +156,17 @@ async function run(){
             const buyer = await userCollection.find(query).toArray();
             res.send(buyer);
         })
+
+        //Get User Api
+        app.get('/users/:email', async(req, res) =>{
+            const email = req.params.email;
+            const query = {email};
+            const user = await userCollection.findOne(query);
+            res.send(user);
+        })
         
         // Get Sellers from DB Api
-        app.get('/users/sellers', async(req, res) =>{
+        app.get('/sellers', async(req, res) =>{
             const query = {role: 'seller'};
             const seller = await userCollection.find(query).toArray();
             res.send(seller);
@@ -205,7 +228,7 @@ async function run(){
         // Get Advertisies Product Api
         app.get('/advertisies', async(req, res) =>{
             const query = {status: 'advertised'};
-            const result = await productCollection.find(query).toArray();
+            const result = await productCollection.find(query).sort({_id: -1}).toArray();
             res.send(result);
         })
 
