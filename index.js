@@ -262,6 +262,7 @@ async function run(){
             res.send(result);
         })
 
+        // Stripe Payment
         app.post('/create-payment-intent', async(req, res) =>{
             const booking = req.body;
             const price = booking.resale_price;
